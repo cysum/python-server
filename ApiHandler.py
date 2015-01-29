@@ -7,7 +7,7 @@ class ApiHandler(BaseHTTPRequestHandler):
 
     def get_services_json(self, targets, ports):
         data = self.s.get_services(targets, ports)
-        return json.dumps(data, indent=4)
+        return (json.dumps(data, indent=4))
 
 
     def do_GET(self):
