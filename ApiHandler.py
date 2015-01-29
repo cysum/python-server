@@ -1,14 +1,13 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from Scanner import Scanner
-import json
-import urllib
+import json, urllib
 
 class ApiHandler(BaseHTTPRequestHandler):
     s = Scanner()
 
     def get_services_json(self, targets, ports):
         data = self.s.get_services(targets, ports)
-        return json.dumps(data)
+        return json.dumps(data, indent=4)
 
 
     def do_GET(self):
