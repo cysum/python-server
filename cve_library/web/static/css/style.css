@@ -1,0 +1,31 @@
+.whitelisted{
+    color: #AA0000;
+}
+.blacklisted{
+    color: #555588;
+}
+.listInput{
+    width:60%;
+    min-width:200px;
+}
+#admin{
+	float: right;
+}
+ul.nav li.dropdown:hover > ul.dropdown-menu {
+    display: block;    
+}
+.back-to-top {
+    position: fixed;
+    bottom: 2em;
+    right: 0px;
+    text-decoration: none;
+    color: #000000;
+    background-color: rgba(235, 180, 180, 0.70);
+    font-size: 12px;
+    padding: 1em;
+    display: none;
+}
+
+.back-to-top:hover {    
+    background-color: rgba(135, 135, 135, 0.50);
+}

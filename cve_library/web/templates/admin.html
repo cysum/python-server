@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Admin page</title>
+  <!-- metadata -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Common Vulnerability Exposure most recent entries"/>
+  <meta name="author" content="http://github.com/adulau/cve-search - cve-search"/>
+  <meta name="author" content="http://github.com/pidgeyl/cve-search - cve-search"/>
+
+  <!-- css -->
+  <link href="/static/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="/static/css/style.css" rel="stylesheet" />
+
+  <!-- favicon -->
+  <link rel="shortcut icon" href="/static/img/favicon.ico" />
+
+  <!-- javascript -->
+  <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+  <!--[if lt IE 9]>
+    <script src="js/html5shiv.js"></script>
+  <![endif]-->
+  <script type="text/javascript" src="/static/js/jquery-1.11.2.min.js"></script>
+  <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="/static/js/custom/scripts.js"></script>
+  <script type="text/javascript" src="/static/js/custom/admin.js"></script>
+</head>
+
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-12">
+        <!-- Nav -->
+        {% include 'menu.html' %}
+        <!-- End Nav -->
+        <!-- Content -->
+        <div>
+          <!-- Status -->
+          <div>
+            <!-- type -->
+            {% if status[1] == 'success' %}
+              <div class="alert alert-success">
+                <span class="glyphicon glyphicon-ok-sign"></span>
+            {% elif status[1] == 'info' %}
+              <div class="alert alert-info">
+                <span class="glyphicon glyphicon-info-sign"></span>
+            {% elif status[1] == 'warning' %}
+              <div class="alert alert-warning">
+                <span class="glyphicon glyphicon-warning-sign"></span>
+            {% elif status[1] == 'error' %}
+              <div class="alert alert-danger">
+                <span class="glyphicon glyphicon-remove-sign"></span>
+            {% else %}
+              <div>
+            {% endif %}
+              <!-- content -->
+              {% if status[0].startswith('wl_') %}
+                 {% set list = 'Whitelist' %}
+              {% elif status[0].startswith('bl_') %}
+                 {% set list = 'Blacklist' %}
+              {% endif %}
+
+              {% if status[0] == 'logged_in' %}
+                Logged in succesfully
+              {% elif status[0] == 'db_updated' %}
+                Database update finished
+              {% elif (status[0] == 'wl_imported') or (status[0] == 'bl_imported') %}
+                {{ list }} import finished
+              {% elif (status[0] == 'wl_already_filled') or (status[0] == 'bl_already_filled') %}
+                {{ list }} is already filled. You can force to drop the database
+              {% elif (status[0] == 'wl_exported') or (status[0] == 'bl_exported') %}
+                {{ list }} export finished
+              {% elif (status[0] == 'wl_file_already_exists') or (status[0] == 'bl_file_already_exists') %}
+                A file with that name already exists. The {{ list|lower }} was not exported
+              {% elif (status[0] == 'wl_dropped') or (status[0] == 'bl_dropped') %}
+                {{ list }} dropped
+              {% elif status[0] == 'invalid_path_format' %}
+                Invalid path format!
+              {% elif status[0] == 'invalid_path' %}
+                Invalid path!
+              {% endif %}
+              {% if (status[0] != 'default') %}
+                <br /><br /><a href="/admin"><span class="glyphicon glyphicon-remove"></span> close</a>
+              {% endif %}
+              </div>
+          </div>
+          <!-- Warning note -->
+          <div class="alert alert-warning">
+            <span class="glyphicon glyphicon-warning-sign"></span>
+            Always verify the result of your administrative tasks in the console!
+          </div>
+          <!-- Database update -->
+          <div class="well well-small">
+            <form action="/admin/updatedb">
+              <strong>Update the database</strong> <br />
+              <input type="submit" value="Update"/>
+            </form>
+          </div>
+          <!-- Whitelist import -->
+          <div class="well well-small">
+            <strong>Manage whitelist</strong> <br />
+            <input id="wl_Import" type='text' placeholder="full path to file" pattern="[a-Z0-9/ ._-]+" /> <br />
+            <input type="checkbox" id="wl_ForceImport">Force<br />
+            <button onclick="whitelistImport()">Import</button>
+            <button onclick="whitelistExport()">Export</button>
+            <button onclick="dropWhitelist()">Drop list</button>
+            <button onclick="location.href='/admin/whitelist/view'">View</button>
+          </div>
+          <!-- Blacklist import -->
+          <div class="well well-small">
+            <strong>Manage blacklist</strong> <br />
+            <input id="bl_Import" type='text' placeholder="full path to file" pattern="[a-Z0-9/ ._-]+" /> <br />
+            <input type="checkbox" id="bl_ForceImport">Force<br />
+            <button onclick="blacklistImport()">Import</button>
+            <button onclick="blacklistExport()">Export</button>
+            <button onclick="dropBlacklist()">Drop list</button>
+            <button onclick="location.href='/admin/blacklist/view'">View</button>
+          </div>
+          <a href="#" class="back-to-top">Back to Top</a>
+        </div>
+        <!-- end content -->
+      </div>
+    </div>
+  </div>
+</body>

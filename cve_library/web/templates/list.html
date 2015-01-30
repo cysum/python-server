@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>{{ listType }} management</title>
+  <!-- metadata -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Common Vulnerability Exposure most recent entries"/>
+  <meta name="author" content="http://github.com/adulau/cve-search - cve-search"/>
+  <meta name="author" content="http://github.com/pidgeyl/cve-search - cve-search"/>
+
+  <!-- css -->
+  <link href="/static/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="/static/css/style.css" rel="stylesheet" />
+
+  <!-- favicon -->
+  <link rel="shortcut icon" href="/static/img/favicon.ico" />
+
+  <!-- javascript -->
+  <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+  <!--[if lt IE 9]>
+    <script src="js/html5shiv.js"></script>
+  <![endif]-->
+  <script type="text/javascript" src="/static/js/jquery-1.11.2.min.js"></script>
+  <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="/static/js/custom/scripts.js"></script>
+  <script type="text/javascript">
+    var editedCPE
+    function addItem() {
+      var CPE = document.getElementById("id").value.trim();
+      var commentArray = document.getElementById("comments").value.trim()
+      var comments = ""
+      if (commentArray){
+        commentArray = commentArray.split("\n");
+        for (comment in commentArray){
+          comments = comments + "# " + commentArray[comment];
+        }
+      }
+      CPE = CPE+comments;
+      if(editedCPE){
+        var url ="/admin/{{ listType|lower }}/edit";
+      }else{
+        var url ="/admin/{{ listType|lower }}/add";
+      }
+      postURL(url, CPE);
+    }
+    function remove(item){
+      if(confirm("Are you sure you want to remove this rule?")){
+        var url = "/admin/{{ listType|lower }}/remove";
+        postURL(url,item);
+      }
+    }
+    function postURL(url, cpe) {
+      var form = document.createElement("FORM");
+      form.method = "POST";
+      form.style.display = "none";
+      document.body.appendChild(form);
+      form.action = url
+      input = document.createElement("INPUT");
+      input.type = "hidden";
+      input.name = "cpe"
+      input.value = cpe
+      form.appendChild(input);
+      if(editedCPE){
+        oldCPE = document.createElement("INPUT");
+        oldCPE.type = "hidden";
+        oldCPE.name = "oldCPE";
+        oldCPE.value = editedCPE;
+        form.appendChild(oldCPE);
+      }
+      form.submit();
+    }
+    function editCPE(cpe, comments){
+      editedCPE = cpe;
+      commentString="";
+      for(comment in comments){
+        commentString = commentString + comments[comment] + "\n";
+      }
+      commentString = commentString.trim();
+      document.getElementById("id").value = cpe;
+      document.getElementById("comments").value = commentString;
+      document.getElementById("add").value = "Update";
+      if(document.getElementById("cancel") == null){
+        input = document.createElement("INPUT");
+        input.type = "button";
+        input.addEventListener("click", cancel, false);
+        input.id = "cancel";
+        input.value = "Cancel";
+        document.getElementById("addItem").appendChild(input);
+      }
+    }
+    function cancel(){
+      document.getElementById('id').value = '';
+      document.getElementById('comments').value = '';
+      document.getElementById('add').value = 'Add';
+      document.getElementById('addItem').removeChild(document.getElementById('cancel'));
+    }
+  </script>
+</head>
+
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-12">
+        <!-- Nav -->
+        {% include 'menu.html' %}
+        <!-- End Nav -->
+        <!-- Content -->
+        <div>
+          <!-- breadcrumb -->
+          <ol class="breadcrumb">
+            <li><a href="/admin">Admin</a></li>
+            <li class="active">{{listType}}</li>
+          </ol>
+          <!-- add items -->
+          <!-- Status -->
+          <div>
+            <!-- type -->
+            {% if status[1] == 'success' %}
+              <div class="alert alert-success">
+                <span class="glyphicon glyphicon-ok-sign"></span>
+            {% elif status[1] == 'info' %}
+              <div class="alert alert-info">
+                <span class="glyphicon glyphicon-info-sign"></span>
+            {% elif status[1] == 'warning' %}
+              <div class="alert alert-warning">
+                <span class="glyphicon glyphicon-warning-sign"></span>
+            {% elif status[1] == 'error' %}
+              <div class="alert alert-danger">
+                <span class="glyphicon glyphicon-remove-sign"></span>
+            {% else %}
+              <div>
+            {% endif %}
+              <!-- content -->
+              {% if (status[0] == 'added') %}
+                Rule added to the {{ listType }}
+              {% elif status[0] == 'removed' %}
+                Rule removed from the {{ listType }}
+              {% elif (status[0] == 'updated') %}
+                The rule was updated
+              {% elif (status[0] == 'update_failed') %}
+                Failed to update the rule in the {{ listType }}
+              {% elif (status[0] == 'already_exists') %}
+                This rule or a more global rule already exists in the {{ listType }}
+              {% elif (status[0] == 'already_removed') %}
+                Rule was already removed from the {{ listType }}.
+              {% elif (status[0] == 'invalid_url') %}
+                Invalid URL!
+              {% endif %}
+              {% if (status[0] != 'default') %}
+                <br /><br /><a href="/admin/{{listType|lower}}/view"><span class="glyphicon glyphicon-remove"></span> close</a>
+              {% endif %}
+              </div>
+          </div>
+          <!-- Add new rule -->
+          <div class="well well-small">
+            <form id="addItem" class="nav form-search" onsubmit="addItem(); return false;">
+              <strong>Add an item to the {{ listType }}</strong> <br />
+              <input id="id" class="listInput" type="text" placeholder="full or partial CPE" pattern="cpe:/[a-z0-9/.:%-_~]+" /> <br />
+              <textarea id="comments" class="listInput" rows="4" placeholder="comments, separated by enter"></textarea> <br />
+              <input id="add" type="submit" value="Add"/>
+            </form>
+            <a href="/admin/listmanagement">Browse...</a>
+          </div>
+          <!-- Current rules -->
+          <table class="table table-hover table-striped table-condensed">
+            <tbody>
+              <tr class="warning">
+                <td></td>
+                <td></td>
+                <td>Rule</td>
+                <td>Comments</td>
+              </tr>
+              {% for ruleID in rules %}
+                <tr>
+                  <td><a href="javascript:remove('{{ruleID['id']}}')"><span class="glyphicon glyphicon-remove"></span></a></td>
+                  {% if ruleID['comments'] is defined %}
+                    <td><a href='javascript:editCPE("{{ruleID["id"]}}",{{ruleID["comments"]}})'><span class="glyphicon glyphicon-edit"></span></a></td>
+                  {% else %}
+                    <td><a href='javascript:editCPE("{{ruleID["id"]}}",[])'><span class="glyphicon glyphicon-edit"></span></a></td>
+                  {% endif %}
+                  <td>{{ ruleID['id'] }}</td>
+                  <td>
+                    <ul>
+                      {% for comment in ruleID['comments'] %}
+                        <li>{{ comment }}</li>
+                      {% endfor %}
+                    </ul>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <a href="#" class="back-to-top">Back to Top</a>
+        </div>
+        <!-- end content -->
+      </div>
+    </div>
+  </div>
+</body>
+</html>
