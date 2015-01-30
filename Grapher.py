@@ -25,6 +25,7 @@ KEY_PRODUCT         =   "product"
 KEY_CPE             =   "cpe"
 KEY_STATE           =   "state"
 
+HAS                 =   "HAS"
 top_keys            =   [KEY_STATUS, KEY_ADDRESSES, KEY_VENDOR, KEY_HOSTNAME]
 
 SAMPLE_DATA_PATH    =   "./sample_scan.json"
@@ -36,16 +37,20 @@ class Grapher:
     def plot_scan_results(self, res):
         ports = []
         for host in res.keys():
-            server_node = Node(SERVER, address=host, hostname=res[host][KEY_HOSTNAME])
+            server  = Node(SERVER, address=host, hostname=res[host][KEY_HOSTNAME])
             for attr in res[host].keys():
-                if attr not in top_keys and res[host][attr].get(KEY_STATE, "closed") == OPEN:
-                        product = res[host][attr][KEY_PRODUCT]
-                        version = res[host][attr][KEY_VERSION]
-                        cpe     = res[host][attr][KEY_CPE]
-                        
-                        #port_node = Node(PORT, number=attr, product=res        
-            self.graph.create(server_node)
-           
+                if attr not in top_keys:
+                    for port in res[host][attr]:
+                        if res[host][attr][port].get(KEY_STATE, "closed") == OPEN:
+                            product = res[host][attr][port][KEY_PRODUCT]
+                            version = res[host][attr][port][KEY_VERSION]
+                            cpe     = res[host][attr][port][KEY_CPE]
+                            
+                            port_node = Node(PORT, number=port, protocol=attr, product=product, version=version, cpe=cpe, state=OPEN)        
+                            #ports.add(port_node)
+                            server_has_port = Relationship(server, HAS, port_node) 
+                            self.graph.create(server_has_port)
+            
 
 
 def main():
