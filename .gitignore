@@ -55,3 +55,6 @@ target/
 
 # CVE temporary files
 cve_library/tmp/
+
+# vim swp files
+*.swp
