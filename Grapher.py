@@ -7,7 +7,7 @@ PORT                =   "port"
 PRODUCT             =   "product"
 VERSION             =   "version"
 CPE                 =   "cpe"
-VULNERABILITIES     =   "vulnerabilities"
+VULNERABILITY     =   "vulnerability"
 CWE                 =   "cwe"
 PUBLISHED           =   "published"
 SUMMARY             =   "summary"
@@ -24,6 +24,7 @@ KEY_VERSION         =   "version"
 KEY_PRODUCT         =   "product"
 KEY_CPE             =   "cpe"
 KEY_STATE           =   "state"
+KEY_VULNERABILITIES     =   "vulnerabilities"
 
 HAS                 =   "HAS"
 top_keys            =   [KEY_STATUS, KEY_ADDRESSES, KEY_VENDOR, KEY_HOSTNAME]
@@ -33,25 +34,30 @@ SAMPLE_DATA_PATH    =   "./sample_scan.json"
 class Grapher:
     def __init__(self):
         self.graph = Graph()
-
+    
+    """Accepts a dict of scanning results and adds the server, its ports and vulerabilities in Neo4jDB"""
     def plot_scan_results(self, res):
-        ports = []
         for host in res.keys():
-            server  = Node(SERVER, address=host, hostname=res[host][KEY_HOSTNAME])
+            hostname = res[host][KEY_HOSTNAME]
+            server  = Node(SERVER, id=host, address=host, hostname=hostname)
             for attr in res[host].keys():
                 if attr not in top_keys:
-                    for port in res[host][attr]:
-                        if res[host][attr][port].get(KEY_STATE, "closed") == OPEN:
-                            product = res[host][attr][port][KEY_PRODUCT]
-                            version = res[host][attr][port][KEY_VERSION]
-                            cpe     = res[host][attr][port][KEY_CPE]
-                            
-                            port_node = Node(PORT, number=port, protocol=attr, product=product, version=version, cpe=cpe, state=OPEN)        
-                            #ports.add(port_node)
-                            server_has_port = Relationship(server, HAS, port_node) 
+                    for portno in res[host][attr]:
+                        if res[host][attr][portno].get(KEY_STATE, "closed") == OPEN:
+                            product = res[host][attr][portno][KEY_PRODUCT]
+                            version = res[host][attr][portno][KEY_VERSION]
+                            cpe     = res[host][attr][portno][KEY_CPE]
+                            vulnerabilities = res[host][attr][portno][KEY_VULNERABILITIES]
+                            port = Node(PORT, id=portno, number=portno, protocol=attr, product=product, version=version, cpe=cpe, state=OPEN)        
+                            server_has_port = Relationship(server, HAS, port) 
                             self.graph.create(server_has_port)
-            
-
+                            for vulnerability in vulnerabilities:
+                                published   = vulnerability[KEY_PUBLISHED]
+                                cve         = vulnerability[KEY_CVE] 
+                                summary     = vulnerability[KEY_SUMMARY] 
+                                vuln        = Node(VULNERABILITY, id=cve, cve=cve, summary=summary, published=published)
+                                port_has_vuln = Relationship(port, HAS, vuln)
+                                self.graph.create(port_has_vuln)
 
 def main():
     g = Grapher()
