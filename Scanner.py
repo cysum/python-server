@@ -26,7 +26,7 @@ class Scanner:
         return '[' + multiroot_json.replace('}\n{', '},{') + ']'
 
     def get_cpe_data(self, cpe_string):
-        command = "python ./cve_library/search.py -p " + cpe_string + " -o json"
+        command = "python3 ./cve_library/search.py -p " + cpe_string + " -o json"
         search_json = self.make_list(os.popen(command).read())
         results = json.loads(search_json)
         return results
