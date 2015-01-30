@@ -52,3 +52,6 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# CVE temporary files
+cve_library/tmp/
